@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.tenco'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // MySQL JDBC 드라이버 - DB 연결에 필요
+    implementation 'com.mysql:mysql-connector-j:8.4.0'
+
+    // HikariCP - 커넥션 풀 라이브러리
+    implementation 'com.zaxxer:HikariCP:5.1.0'
+
+    // Lombok - @Getter, @Setter, @Builder 등 보일러플레이트 코드 자동 생성
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Log4j2 - 애플리케이션 로깅 프레임워크
+    // log4j-api  : 로깅 API (코드에서 import하는 대상)
+    // log4j-core : 실제 로깅 엔진 (설정 파일 읽기, 출력 처리)
+    implementation 'org.apache.logging.log4j:log4j-api:2.23.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.23.1'
+
+    // SLF4J → Log4j2 브릿지 - HikariCP가 SLF4J를 사용하므로 Log4j2로 연결
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
