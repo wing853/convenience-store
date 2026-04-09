@@ -3,9 +3,7 @@ package com.tenco.dao;
 import com.tenco.dto.Product;
 import com.tenco.util.DBConnectionManager;
 
-import java.math.BigDecimal;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,28 +45,26 @@ public class ProductDAO {
         }
     } // end of findByBarcode
 
-    public Boolean insertProduct(String barcode, String name, String category,
-                              BigDecimal price, BigDecimal cost, int stock) throws SQLException {
+    public Boolean insertProduct(Product product) throws SQLException {
         String sql = """
                 INSERT INTO product(barcode, name, category, price, cost, stock)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = DBConnectionManager.getConnection();
-        PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1,barcode);
-            pstmt.setString(2,name);
-            pstmt.setString(3,category);
-            pstmt.setBigDecimal(4,price);
-            pstmt.setBigDecimal(5,cost);
-            pstmt.setInt(6,stock);
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, product.getBarcode());
+            pstmt.setString(2, product.getName());
+            pstmt.setString(3, product.getCategory());
+            pstmt.setBigDecimal(4, product.getPrice());
+            pstmt.setBigDecimal(5, product.getCost());
+            pstmt.setInt(6, product.getStock());
             int rowInsert = pstmt.executeUpdate();
             return rowInsert > 0;
         }
     } // end of insertProduct()
 
     // 4단계 - 상품 수정 (update) 가격, 제고, 유통기한
-    public boolean updateProduct(BigDecimal price, int stock,
-                                 LocalDate date, String barcode) throws SQLException {
+    public boolean updateProduct(Product product) throws SQLException {
         String sql = """
                 UPDATE product
                 SET price = ?,
@@ -77,11 +73,11 @@ public class ProductDAO {
                 WHERE barcode = ?
                 """;
         try (Connection connection = DBConnectionManager.getConnection();
-        PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setBigDecimal(1,price);
-            pstmt.setInt(2, stock);
-            pstmt.setDate(3, Date.valueOf(date));
-            pstmt.setString(4,barcode);
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setBigDecimal(1, product.getPrice());
+            pstmt.setInt(2, product.getStock());
+            pstmt.setDate(3, Date.valueOf(product.getExpireDate()));
+            pstmt.setString(4, product.getBarcode());
             int rowUpdate = pstmt.executeUpdate();
             return rowUpdate > 0;
         }
@@ -95,13 +91,14 @@ public class ProductDAO {
                 WHERE barcode = ?
                 """;
         try (Connection connection = DBConnectionManager.getConnection();
-        PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1,barcode);
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, barcode);
             int rowAvailable = pstmt.executeUpdate();
             return rowAvailable > 0;
         }
 
     }
+
     // 6단계 - 재고 부족 상품 조회 (findLowStock)
     public List<Product> findLowStock() throws SQLException {
         List<Product> products = new ArrayList<>();
@@ -110,7 +107,7 @@ public class ProductDAO {
                 WHERE stock <= min_stock
                 """;
         try (Connection connection = DBConnectionManager.getConnection();
-        PreparedStatement pstmt = connection.prepareStatement(sql)) {
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     products.add(setProduct(rs));
