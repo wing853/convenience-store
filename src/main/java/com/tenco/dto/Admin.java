@@ -1,5 +1,14 @@
 package com.tenco.dto;
 
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString(exclude = "password")
+@Builder
+
 public class Admin {
 
     private int id;
