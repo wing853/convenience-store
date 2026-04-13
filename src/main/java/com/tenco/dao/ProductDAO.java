@@ -45,10 +45,10 @@ public class ProductDAO {
         }
     } // end of findByBarcode
 
-    public Boolean insertProduct(Product product) throws SQLException {
+    public boolean insertProduct(Product product) throws SQLException {
         String sql = """
-                INSERT INTO product(barcode, name, category, price, cost, stock)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO product(barcode, name, category, price, cost, stock,expire_date)
+                VALUES (?, ?, ?, ?, ?, ?,?)
                 """;
         try (Connection connection = DBConnectionManager.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -58,6 +58,7 @@ public class ProductDAO {
             pstmt.setBigDecimal(4, product.getPrice());
             pstmt.setBigDecimal(5, product.getCost());
             pstmt.setInt(6, product.getStock());
+            pstmt.setDate(7, Date.valueOf(product.getExpireDate()));
             int rowInsert = pstmt.executeUpdate();
             return rowInsert > 0;
         }
@@ -118,6 +119,39 @@ public class ProductDAO {
         return products;
     }
 
+    // 소프트 삭제 변경
+    public boolean changeStatus(String barcode) throws SQLException {
+        String sql = """
+                UPDATE product
+                SET is_active = true
+                WHERE barcode = ?
+                AND is_active = false
+                AND expire_date > curdate();
+                """;
+        try (Connection connection = DBConnectionManager.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, barcode);
+            int rowAvailable = pstmt.executeUpdate();
+            return rowAvailable > 0;
+        }
+
+    }
+
+    public void addStock(String barcode, int stock) throws SQLException {
+        String sql = """
+                UPDATE product
+                SET stock = stock + ?
+                WHERE barcode = ?
+                """;
+        try (Connection connection = DBConnectionManager.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, stock);
+            pstmt.setString(2, barcode);
+            pstmt.executeUpdate();
+
+        }
+    }
+
     private Product setProduct(ResultSet rs) throws SQLException {
         Product product = Product.builder()
                 .id(rs.getInt("id"))
@@ -132,17 +166,6 @@ public class ProductDAO {
                 .isActive(rs.getBoolean("is_active"))
                 .build();
         return product;
-    }
-
-    // 테스트 코드
-    public static void main(String[] args) {
-        ProductDAO productDAO = new ProductDAO();
-        try {
-            System.out.println(productDAO.findAll());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
 } // end of class

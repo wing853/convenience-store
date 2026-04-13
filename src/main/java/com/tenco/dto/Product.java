@@ -21,4 +21,5 @@ public class Product {
     private int minStock;
     private LocalDate expireDate;
     private boolean isActive;
+    private String status;
 }

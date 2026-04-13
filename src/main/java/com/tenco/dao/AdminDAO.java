@@ -34,12 +34,4 @@ public class AdminDAO {
         }
     }
 
-    public static void main(String[] args) {
-        AdminDAO adminDAO = new AdminDAO();
-        try {
-            System.out.println(adminDAO.login("admin", "admin123"));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
